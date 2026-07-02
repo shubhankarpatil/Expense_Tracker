@@ -282,7 +282,12 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {loadState === 'setup' && <SheetSetup onSave={handleSheetSave} />}
+        {loadState === 'setup' && (
+          <SheetSetup
+            onSave={handleSheetSave}
+            onCancel={sheetConfig ? () => setLoadState('ready') : undefined}
+          />
+        )}
 
         {loadState === 'error' && (
           <div className="mx-auto mt-16 max-w-md rounded-xl border border-red-800/50 bg-red-950/30 px-6 py-5">

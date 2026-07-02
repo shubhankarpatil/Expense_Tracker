@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Outfit } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${outfit.variable} min-h-screen bg-page text-zinc-50 antialiased`}>
         {children}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

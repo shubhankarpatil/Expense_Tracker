@@ -52,6 +52,13 @@ export interface DashboardData {
   dailyPoints: DailyPoint[];
 }
 
+export interface MonthSummary {
+  yearMonth: string;
+  label: string;
+  total: number;
+  byCategory: Record<Category, number>;
+}
+
 export interface Budget {
   monthly_limit: number | null;
 }

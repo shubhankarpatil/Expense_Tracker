@@ -6,7 +6,14 @@ import {
   parseSheetRows,
   refreshGoogleToken,
 } from '@/lib/sheets';
+import { CATEGORIES, type Category, type MonthSummary } from '@/lib/types';
 import { NextResponse } from 'next/server';
+
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function emptyByCategory(): Record<Category, number> {
+  return Object.fromEntries(CATEGORIES.map((c) => [c, 0])) as Record<Category, number>;
+}
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -20,6 +27,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const sheetId = searchParams.get('sheetId');
   const yearMonth = searchParams.get('month'); // YYYY-MM
+  const mode = searchParams.get('mode');
 
   if (!sheetId) {
     return NextResponse.json({ error: 'Missing sheetId parameter' }, { status: 400 });
@@ -67,7 +75,54 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: namesResult.error ?? 'Could not read sheet tabs' }, { status: 400 });
   }
 
-  // 2. Find the tab matching the current month (e.g. "June 2026")
+  // ── Annual mode: fetch last 12 months in parallel ────────────────────────────
+  if (mode === 'annual') {
+    const last12: { year: number; month: number; yearMonth: string; label: string }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      last12.push({
+        year: y,
+        month: m,
+        yearMonth: `${y}-${String(m).padStart(2, '0')}`,
+        label: `${MONTH_SHORT[m - 1]} ${y}`,
+      });
+    }
+
+    const months: MonthSummary[] = await Promise.all(
+      last12.map(async ({ year: y, month: m, yearMonth: ym, label }) => {
+        const tab = namesResult.names!.find((name) => {
+          const parsed = parseSheetName(name);
+          return parsed?.year === y && parsed?.month === m;
+        });
+
+        if (!tab) return { yearMonth: ym, label, total: 0, byCategory: emptyByCategory() };
+
+        const rowsResult = await withTokenRefresh((token) =>
+          fetchSheetRows(sheetId, token, tab),
+        );
+        if (rowsResult instanceof NextResponse || rowsResult.error || !rowsResult.rows) {
+          return { yearMonth: ym, label, total: 0, byCategory: emptyByCategory() };
+        }
+
+        const { transactions } = parseSheetRows(rowsResult.rows, ym, { year: y, month: m });
+        const byCategory = emptyByCategory();
+        let total = 0;
+        for (const t of transactions) {
+          byCategory[t.category] += t.amount;
+          total += t.amount;
+        }
+        return { yearMonth: ym, label, total, byCategory };
+      }),
+    );
+
+    return NextResponse.json({ months });
+  }
+
+  // ── Single month mode ────────────────────────────────────────────────────────
+
+  // 2. Find the tab matching the requested month
   const targetYear = parseInt(currentYearMonth.slice(0, 4), 10);
   const targetMonth = parseInt(currentYearMonth.slice(5, 7), 10);
 

@@ -9,6 +9,7 @@ import { SpendTrend } from '@/components/SpendTrend';
 import { SheetSetup } from '@/components/SheetSetup';
 import { BudgetEditor } from '@/components/BudgetEditor';
 import { MonthPicker } from '@/components/MonthPicker';
+import { AnnualOverview } from '@/components/AnnualOverview';
 import { formatINR } from '@/lib/format';
 import {
   CATEGORIES,
@@ -16,6 +17,7 @@ import {
   type Budget,
   type CategoryStat,
   type DailyPoint,
+  type MonthSummary,
   type SheetConfig,
   type Transaction,
 } from '@/lib/types';
@@ -100,8 +102,16 @@ export default function DashboardPage() {
   const [isCurrentMonth, setIsCurrentMonth] = useState(true);
   const [todayDay, setTodayDay] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  const [annualMonths, setAnnualMonths] = useState<MonthSummary[]>([]);
 
   // ── fetch sheet data ────────────────────────────────────────────────────────
+
+  const fetchAnnualData = useCallback(async (sheetId: string) => {
+    const res = await fetch(`/api/sheets?sheetId=${encodeURIComponent(sheetId)}&mode=annual`);
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error ?? 'Failed to fetch annual data');
+    setAnnualMonths(json.months);
+  }, []);
 
   const fetchSheetData = useCallback(async (sheetId: string, month: string) => {
     const res = await fetch(
@@ -148,7 +158,10 @@ export default function DashboardPage() {
       setSheetConfig({ sheet_id: sheetRes.data.sheet_id, sheet_url: sheetRes.data.sheet_url });
 
       try {
-        await fetchSheetData(sheetRes.data.sheet_id, selectedMonth);
+        await Promise.all([
+          fetchSheetData(sheetRes.data.sheet_id, selectedMonth),
+          fetchAnnualData(sheetRes.data.sheet_id),
+        ]);
         setLoadState('ready');
       } catch (err) {
         setErrorMsg(err instanceof Error ? err.message : 'Unknown error');
@@ -216,7 +229,10 @@ export default function DashboardPage() {
     if (!sheetConfig || refreshing) return;
     setRefreshing(true);
     try {
-      await fetchSheetData(sheetConfig.sheet_id, selectedMonth);
+      await Promise.all([
+        fetchSheetData(sheetConfig.sheet_id, selectedMonth),
+        fetchAnnualData(sheetConfig.sheet_id),
+      ]);
       await supabase
         .from('sheet_configs')
         .update({ last_synced_at: new Date().toISOString() })
@@ -364,6 +380,10 @@ export default function DashboardPage() {
                 yearMonth={selectedMonth}
               />
             </div>
+
+            {annualMonths.length > 0 && (
+              <AnnualOverview months={annualMonths} />
+            )}
           </div>
         )}
       </main>

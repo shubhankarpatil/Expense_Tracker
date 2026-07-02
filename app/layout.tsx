@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Outfit } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
@@ -26,7 +27,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
       </head>
-      <body className={`${outfit.variable} min-h-screen bg-page text-zinc-50 antialiased`}>{children}</body>
+      <body className={`${outfit.variable} min-h-screen bg-page text-zinc-50 antialiased`}>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

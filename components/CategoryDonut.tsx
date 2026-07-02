@@ -16,7 +16,6 @@ ChartJS.register(ArcElement, Tooltip);
 
 interface CategoryDonutProps {
   stats: CategoryStat[];
-  totalSpent: number;
 }
 
 type HoverState = { label: string; amount: number; percent: number } | null;

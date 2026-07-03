@@ -36,19 +36,19 @@ function makeCenterTextPlugin(hoverRef: React.MutableRefObject<HoverState>): Plu
       const hovered = hoverRef.current;
 
       if (hovered) {
-        ctx.font = '600 13px system-ui, sans-serif';
+        ctx.font = '600 11px system-ui, sans-serif';
         ctx.fillStyle = '#a1a1aa';
-        ctx.fillText(hovered.label, cx, cy - 17);
+        ctx.fillText(hovered.label, cx, cy - 13);
 
-        ctx.font = 'bold 16px system-ui, sans-serif';
+        ctx.font = 'bold 14px system-ui, sans-serif';
         ctx.fillStyle = '#fafafa';
-        ctx.fillText(formatINR(hovered.amount), cx, cy + 1);
+        ctx.fillText(formatINR(hovered.amount), cx, cy + 2);
 
-        ctx.font = '11px system-ui, sans-serif';
+        ctx.font = '10px system-ui, sans-serif';
         ctx.fillStyle = '#71717a';
-        ctx.fillText(`${hovered.percent.toFixed(0)}% of total`, cx, cy + 18);
+        ctx.fillText(`${hovered.percent.toFixed(0)}% of total`, cx, cy + 15);
       } else {
-        ctx.font = '12px system-ui, sans-serif';
+        ctx.font = '11px system-ui, sans-serif';
         ctx.fillStyle = '#52525b';
         ctx.fillText('hover a slice', cx, cy);
       }
@@ -77,7 +77,7 @@ export function CategoryDonut({ stats }: CategoryDonutProps) {
   };
 
   const options: ChartOptions<'doughnut'> = {
-    cutout: '68%',
+    cutout: '72%',
     plugins: {
       legend: { display: false },
       tooltip: { enabled: false },

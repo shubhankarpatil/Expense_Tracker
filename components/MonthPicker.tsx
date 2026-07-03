@@ -3,6 +3,7 @@
 interface MonthPickerProps {
   value: string;        // 'YYYY-MM'
   onChange: (month: string) => void;
+  min?: string;         // don't go before this month
   max?: string;         // don't go beyond this month (defaults to current)
 }
 
@@ -11,22 +12,24 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-export function MonthPicker({ value, onChange, max }: MonthPickerProps) {
+export function MonthPicker({ value, onChange, min, max }: MonthPickerProps) {
   const [year, month] = value.split('-').map(Number);
 
   const maxValue = max ?? new Date().toISOString().slice(0, 7);
   const [maxYear, maxMonth] = maxValue.split('-').map(Number);
 
   const isAtMax = year === maxYear && month === maxMonth;
+  const isAtMin = min ? value <= min : false;
 
   function prev() {
-    const d = new Date(year, month - 2); // month-2 because month is 1-based and Date month is 0-based
+    if (isAtMin) return;
+    const d = new Date(year, month - 2);
     onChange(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
   }
 
   function next() {
     if (isAtMax) return;
-    const d = new Date(year, month); // month is 1-based, so this gives next month
+    const d = new Date(year, month);
     onChange(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
   }
 
@@ -34,7 +37,8 @@ export function MonthPicker({ value, onChange, max }: MonthPickerProps) {
     <div className="flex items-center gap-1">
       <button
         onClick={prev}
-        className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-surface hover:text-zinc-200"
+        disabled={isAtMin}
+        className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-surface hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-30"
         title="Previous month"
       >
         <ChevronLeft />

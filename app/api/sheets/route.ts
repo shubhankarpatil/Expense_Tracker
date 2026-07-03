@@ -156,5 +156,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error }, { status: 400 });
   }
 
-  return NextResponse.json({ transactions, month: currentYearMonth });
+  const todayYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const availableMonths = namesResult.names
+    .map((name) => {
+      const parsed = parseSheetName(name);
+      if (!parsed) return null;
+      return `${parsed.year}-${String(parsed.month).padStart(2, '0')}`;
+    })
+    .filter((ym): ym is string => ym !== null && ym <= todayYM)
+    .sort();
+
+  return NextResponse.json({ transactions, month: currentYearMonth, availableMonths });
 }

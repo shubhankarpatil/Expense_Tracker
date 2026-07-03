@@ -103,6 +103,7 @@ export default function DashboardPage() {
   const [todayDay, setTodayDay] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
   const [annualMonths, setAnnualMonths] = useState<MonthSummary[]>([]);
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
 
   // ── fetch sheet data ────────────────────────────────────────────────────────
 
@@ -120,6 +121,7 @@ export default function DashboardPage() {
     const json = await res.json();
     if (!res.ok) throw new Error(json.error ?? 'Failed to fetch sheet data');
 
+    if (json.availableMonths?.length) setAvailableMonths(json.availableMonths);
     const transactions: Transaction[] = json.transactions;
     const computed = computeDashboard(transactions, month);
     setTotalSpent(computed.totalSpent);
@@ -250,6 +252,18 @@ export default function DashboardPage() {
     window.location.href = '/';
   }
 
+  async function handleReconnectGoogle() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        scopes: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+      },
+    });
+  }
+
+  const isTokenError = errorMsg.toLowerCase().includes('token') || errorMsg.toLowerCase().includes('sign in again');
+
   // ── derived values ───────────────────────────────────────────────────────────
 
   const limit = budget.monthly_limit ?? 0;
@@ -310,13 +324,22 @@ export default function DashboardPage() {
             <p className="text-sm font-medium text-red-400">Something went wrong</p>
             <p className="mt-1 text-sm text-red-300/70">{errorMsg}</p>
             <div className="mt-4 flex gap-3">
-              {sheetConfig && (
+              {isTokenError ? (
                 <button
-                  onClick={() => { setLoadState('loading'); handleRefresh(); }}
+                  onClick={handleReconnectGoogle}
                   className="rounded-lg bg-red-900/50 px-4 py-2 text-sm text-red-300 hover:bg-red-900"
                 >
-                  Retry
+                  Reconnect Google
                 </button>
+              ) : (
+                sheetConfig && (
+                  <button
+                    onClick={() => { setLoadState('loading'); handleRefresh(); }}
+                    className="rounded-lg bg-red-900/50 px-4 py-2 text-sm text-red-300 hover:bg-red-900"
+                  >
+                    Retry
+                  </button>
+                )
               )}
               <button
                 onClick={() => setLoadState('setup')}
@@ -335,7 +358,8 @@ export default function DashboardPage() {
               <MonthPicker
                 value={selectedMonth}
                 onChange={setSelectedMonth}
-                max={todayYearMonth()}
+                min={availableMonths[0]}
+                max={availableMonths.at(-1) ?? todayYearMonth()}
               />
               {refreshing && (
                 <span className="text-xs text-zinc-500">Loading…</span>
@@ -381,7 +405,7 @@ export default function DashboardPage() {
               />
             </div>
 
-            {annualMonths.length > 0 && (
+            {annualMonths.some((m) => m.total > 0) && (
               <AnnualOverview months={annualMonths} />
             )}
           </div>

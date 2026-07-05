@@ -61,7 +61,7 @@ export function SheetSetup({ onSave, onCancel }: SheetSetupProps) {
             <strong className="text-zinc-300">Category</strong>.
           </p>
           <a
-            href="https://docs.google.com/spreadsheets/d/118iYFWfhLDITYQcKztjtxF9kemKkTqEuOIrnGfRh70Y/copy?gid=0#gid=0"
+            href="https://docs.google.com/spreadsheets/d/118iYFWfhLDITYQcKztjtxF9kemKkTqEuOIrnGfRh70Y/copy"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 inline-flex items-center gap-1.5 text-sm text-blue-400 transition-colors hover:text-blue-300"

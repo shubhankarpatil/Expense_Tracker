@@ -132,7 +132,11 @@ export async function fetchSheetNames(
   });
 
   if (res.status === 401) return { names: null, error: 'UNAUTHORIZED' };
-  if (!res.ok) return { names: null, error: `Sheets API error ${res.status}` };
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    console.error('Sheets fetchSheetNames error:', res.status, JSON.stringify(body));
+    return { names: null, error: `Sheets API error ${res.status}` };
+  }
 
   const json = await res.json();
   const names: string[] = json.sheets?.map(

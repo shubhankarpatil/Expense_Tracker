@@ -132,6 +132,11 @@ export async function fetchSheetNames(
   });
 
   if (res.status === 401) return { names: null, error: 'UNAUTHORIZED' };
+  if (res.status === 403) {
+    const body = await res.json().catch(() => null);
+    console.error('Sheets fetchSheetNames error:', res.status, JSON.stringify(body));
+    return { names: null, error: 'SCOPE_INSUFFICIENT' };
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     console.error('Sheets fetchSheetNames error:', res.status, JSON.stringify(body));

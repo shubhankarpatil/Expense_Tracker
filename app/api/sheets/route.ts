@@ -71,6 +71,12 @@ export async function GET(request: Request) {
     fetchSheetNames(sheetId, token),
   );
   if (namesResult instanceof NextResponse) return namesResult;
+  if (namesResult.error === 'SCOPE_INSUFFICIENT') {
+    return NextResponse.json(
+      { error: 'Google Sheets access was not granted. Please reconnect your Google account to allow Sheets access.' },
+      { status: 401 },
+    );
+  }
   if (namesResult.error || !namesResult.names) {
     return NextResponse.json({ error: namesResult.error ?? 'Could not read sheet tabs' }, { status: 400 });
   }

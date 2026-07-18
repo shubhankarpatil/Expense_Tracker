@@ -258,11 +258,15 @@ export default function DashboardPage() {
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback`,
         scopes: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       },
     });
   }
 
-  const isTokenError = errorMsg.toLowerCase().includes('token') || errorMsg.toLowerCase().includes('sign in again');
+  const isTokenError = errorMsg.toLowerCase().includes('token') || errorMsg.toLowerCase().includes('sign in again') || errorMsg.toLowerCase().includes('reconnect');
 
   // ── derived values ───────────────────────────────────────────────────────────
 

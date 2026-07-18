@@ -155,6 +155,8 @@ export async function fetchSheetRows(
 
   if (res.status === 401) return { rows: null, error: 'UNAUTHORIZED' };
   if (res.status === 403) {
+    const body = await res.json().catch(() => null);
+    console.error('Sheets 403:', JSON.stringify(body));
     return {
       rows: null,
       error: 'Permission denied. Make sure you granted Sheets read access when signing in.',

@@ -18,12 +18,16 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
 interface AnnualOverviewProps {
   months: MonthSummary[];
+  monthlyBudget: number;
 }
 
-export function AnnualOverview({ months }: AnnualOverviewProps) {
+export function AnnualOverview({ months, monthlyBudget }: AnnualOverviewProps) {
   const totalYear = months.reduce((s, m) => s + m.total, 0);
   const monthsWithData = months.filter((m) => m.total > 0);
   const avgMonthly = monthsWithData.length > 0 ? totalYear / monthsWithData.length : 0;
+  const totalSaved = monthlyBudget > 0
+    ? Math.max(0, monthlyBudget * monthsWithData.length - totalYear)
+    : 0;
 
   const biggestMonth = months.length > 0
     ? months.reduce((best, m) => (m.total > best.total ? m : best), months[0])
@@ -117,7 +121,7 @@ export function AnnualOverview({ months }: AnnualOverviewProps) {
         <div className="h-px flex-1 bg-zinc-800" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard label="Total this year" value={formatINR(totalYear)} />
         <StatCard label="Monthly average" value={formatINR(avgMonthly)} />
         <StatCard
@@ -130,6 +134,9 @@ export function AnnualOverview({ months }: AnnualOverviewProps) {
           value={topCategory ?? '—'}
           sub={topCategory ? formatINR(categoryTotals[topCategory]) : undefined}
         />
+        {monthlyBudget > 0 && (
+          <StatCard label="You saved" value={formatINR(totalSaved)} />
+        )}
       </div>
 
       <div className="rounded-xl bg-surface px-5 py-5">

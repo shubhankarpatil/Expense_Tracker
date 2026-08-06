@@ -410,7 +410,7 @@ export default function DashboardPage() {
             </div>
 
             {annualMonths.some((m) => m.total > 0) && (
-              <AnnualOverview months={annualMonths} />
+              <AnnualOverview months={annualMonths} monthlyBudget={limit} />
             )}
           </div>
         )}

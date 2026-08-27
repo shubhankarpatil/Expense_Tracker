@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'Expense Tracker',
   },
+  verification: {
+    google: 'e_IU4mH82QEkve5eHXv5F80vuPK8QQWA1UGwtNhofMc',
+  },
 };
 
 export const viewport: Viewport = {
